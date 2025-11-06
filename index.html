@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fichas RDO - Produtividade</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #767676;
+            --background-color: #f4f7f6;
+            --card-background: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            flex-grow: 1;
+        }
+        .status-indicator {
+            font-size: 0.9em;
+            padding: 5px 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-indicator .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-indicator .online .dot { background-color: var(--success-color); }
+        .status-indicator .offline .dot { background-color: var(--danger-color); }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 30px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group input[type="number"],
+        .form-group select,
+        .form-group textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .form-group input[type="number"] {
+             -moz-appearance: textfield; /* Firefox */
+        }
+        .form-group input[type="number"]::-webkit-outer-spin-button,
+        .form-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #4a5dcb;
+        }
+
+        button.danger {
+            background-color: var(--danger-color);
+        }
+        button.danger:hover {
+            background-color: #c82333;
+        }
+
+        button.secondary {
+            background-color: var(--secondary-color);
+            margin-left: 10px;
+        }
+        button.secondary:hover {
+            background-color: #5a5a5a;
+        }
+        
+        .message {
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-weight: 500;
+            display: none; /* Hidden by default */
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: var(--success-color);
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: var(--danger-color);
+            border: 1px solid #f5c6cb;
+        }
+
+        .ficha-list {
+            margin-top: 20px;
+        }
+
+        .ficha-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .ficha-card div {
+            font-size: 0.9em;
+        }
+        .ficha-card div strong {
+            color: var(--primary-color);
+            margin-right: 5px;
+        }
+        .ficha-card .actions {
+            margin-top: 10px;
+            text-align: right;
+        }
+        .ficha-card .actions button {
+            padding: 6px 12px;
+            font-size: 0.8em;
+            margin-top: 0;
+        }
+
+        .sync-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 15px;
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .sync-status.sincronizado {
+            background-color: var(--success-color);
+        }
+        .sync-status.pendente {
+            background-color: var(--warning-color);
+        }
+
+        .filter-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .filter-section .form-group {
+            flex: 1;
+            min-width: 150px;
+            margin-bottom: 0;
+        }
+        .filter-section button {
+            flex-shrink: 0;
+            align-self: flex-end;
+            margin-top: 0;
+        }
+
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            z-index: 1000;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .spinner {
+            border: 8px solid rgba(255, 255, 255, 0.3);
+            border-top: 8px solid white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            header h1 {
+                font-size: 1.5em;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            .filter-section {
+                flex-direction: column;
+            }
+            .filter-section button {
+                width: 100%;
+            }
+            .ficha-card {
+                padding: 10px;
+            }
+            .ficha-card div strong {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <span>Sincronizando dados...</span>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Fichas RDO</h1>
+            <div id="statusDiv" class="status-indicator online">
+                <span class="dot"></span> Online
+            </div>
+        </header>
+
+        <h2>Registrar Nova Ficha</h2>
+        <form id="fichaForm">
+            <div class="form-group">
+                <label for="nomeOperario">Nome do Operário:</label>
+                <input type="text" id="nomeOperario" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="nomeObra">Nome da Obra:</label>
+                <input type="text" id="nomeObra" required autocomplete="off">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dataExecucao">Data da Execução:</label>
+                    <input type="date" id="dataExecucao" required>
+                </div>
+                <div class="form-group">
+                    <label for="horaInicio">Hora Início (HH):</label>
+                    <input type="number" id="horaInicio" min="0" max="23" placeholder="Ex: 08" required>
+                </div>
+                <div class="form-group">
+                    <label for="minInicio">Minutos Início (MM):</label>
+                    <input type="number" id="minInicio" min="0" max="59" placeholder="Ex: 30" required>
+                </div>
+                <div class="form-group">
+                    <label for="duracao">Duração (minutos):</label>
+                    <input type="number" id="duracao" min="1" placeholder="Ex: 120" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="descricaoAtividade">Descrição da Atividade:</label>
+                <textarea id="descricaoAtividade" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="statusAtividade">Status da Atividade:</label>
+                <select id="statusAtividade" required>
+                    <option value="">Selecione o Status</option>
+                    <option value="Concluída">Concluída</option>
+                    <option value="Em Progresso">Em Progresso</option>
+                    <option value="Pendente">Pendente</option>
+                    <option value="Cancelada">Cancelada</option>
+                </select>
+            </div>
+            <div id="message" class="message"></div>
+            <button type="submit">Salvar Ficha</button>
+        </form>
+
+        <h2>Fichas Registradas</h2>
+        <div class="filter-section">
+            <div class="form-group">
+                <label for="filterOperario">Filtrar por Operário:</label>
+                <input type="text" id="filterOperario" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="filterObra">Filtrar por Obra:</label>
+                <input type="text" id="filterObra" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="filterData">Filtrar por Data:</label>
+                <input type="date" id="filterData">
+            </div>
+            <div class="form-group">
+                <label for="filterStatus">Filtrar por Status:</label>
+                <select id="filterStatus">
+                    <option value="">Todos</option>
+                    <option value="Concluída">Concluída</option>
+                    <option value="Em Progresso">Em Progresso</option>
+                    <option value="Pendente">Pendente</option>
+                    <option value="Cancelada">Cancelada</option>
+                </select>
+            </div>
+            <button id="aplicarFiltros">Aplicar Filtros</button>
+            <button id="limparFiltros" class="secondary">Limpar Filtros</button>
+        </div>
+
+        <button id="exportCsv">Exportar CSV</button>
+        <button id="syncNow" class="secondary">Sincronizar Agora</button>
+        
+        <div class="ficha-list" id="fichaList">
+            <!-- Fichas serão carregadas aqui -->
+            <p>Nenhuma ficha registrada ainda.</p>
+        </div>
+    </div>
+
+    <script>
+        // Registra o Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => console.log('Service Worker registrado com sucesso:', registration.scope))
+                    .catch(error => console.error('Falha ao registrar Service Worker:', error));
+            });
+        }
+
+        const fichaForm = document.getElementById('fichaForm');
+        const fichaList = document.getElementById('fichaList');
+        const messageDiv = document.getElementById('message');
+        const statusDiv = document.getElementById('statusDiv');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // Funções auxiliares
+        function generateUniqueId() {
+            return 'fichardov2-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        function showMessage(msg, type = 'success') {
+            messageDiv.textContent = msg;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            loadingOverlay.style.display = show ? 'flex' : 'none';
+        }
+
+        function resetForm() {
+            fichaForm.reset();
+            // Define a data atual no campo de data da execução
+            document.getElementById('dataExecucao').value = new Date().toISOString().split('T')[0];
+        }
+
+        function updateNetworkStatus() {
+            if (navigator.onLine) {
+                statusDiv.className = 'status-indicator online';
+                statusDiv.innerHTML = '<span class="dot"></span> Online';
+            } else {
+                statusDiv.className = 'status-indicator offline';
+                statusDiv.innerHTML = '<span class="dot"></span> Offline';
+            }
+        }
+
+        // Lógica de Sincronização (Simulada para este app)
+        async function sincronizarDados() {
+            if (!navigator.onLine) {
+                showMessage('Você está offline. A sincronização será tentada quando a conexão for restabelecida.', 'warning');
+                return;
+            }
+
+            showLoading(true);
+            let fichas = [];
+            try {
+            } catch (e) {
+                console.error('Erro ao parsear fichas do localStorage:', e);
+                localStorage.removeItem('fichas_rdo'); // Limpa dados corrompidos
+                showMessage('Dados locais corrompidos foram resetados. Tente novamente.', 'error');
+                showLoading(false);
+                return;
+            }
+            
+            const naoSincronizadas = fichas.filter(f => !f.sincronizado);
+
+            if (naoSincronizadas.length === 0) {
+                showMessage('Nenhuma ficha pendente de sincronização.', 'info');
+                showLoading(false);
+                return;
+            }
+
+            console.log(`Tentando sincronizar ${naoSincronizadas.length} fichas...`);
+            
+            // Simula envio para um backend
+            const MOCK_API_URL = 'https://jsonplaceholder.typicode.com/posts'; // Exemplo de API mock
+
+            for (let i = 0; i < naoSincronizadas.length; i++) {
+                const fichaParaSincronizar = naoSincronizadas[i];
+                let success = false;
+                let attempts = 0;
+                const MAX_ATTEMPTS = 3;
+
+                while (!success && attempts < MAX_ATTEMPTS) {
+                    attempts++;
+                    console.log(`Sincronizando ficha ID: ${fichaParaSincronizar.id} (Tentativa ${attempts} de ${MAX_ATTEMPTS})`);
+                    
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de timeout
+
+                        const response = await fetch(MOCK_API_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(fichaParaSincronizar),
+                            signal: controller.signal
+                        });
+
+                        clearTimeout(timeoutId);
+
+                        if (response.ok) {
+                            // Sucesso na sincronização
+                            console.log('Ficha sincronizada com sucesso:', fichaParaSincronizar.id);
+                            // Marcar como sincronizada
+                            const index = fichas.findIndex(f => f.id === fichaParaSincronizar.id);
+                            if (index !== -1) {
+                                fichas[index].sincronizado = true;
+                                fichas[index].dataSincronizacao = new Date().toISOString();
+                            }
+                            success = true;
+                        } else {
+                            // Erro no servidor, tentar novamente ou registrar falha
+                            console.error(`Erro ao sincronizar ficha ${fichaParaSincronizar.id}: ${response.statusText}`);
+                            if (attempts < MAX_ATTEMPTS) {
+                                await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts))); // Backoff exponencial
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Falha na requisição para sincronizar ficha ${fichaParaSincronizar.id}:`, error);
+                        if (error.name === 'AbortError') {
+                            console.warn('Requisição de sincronização excedeu o tempo limite.');
+                        }
+                        if (attempts < MAX_ATTEMPTS) {
+                            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts))); // Backoff exponencial
+                        }
+                    }
+                }
+
+                if (!success) {
+                    console.error(`Falha persistente ao sincronizar ficha ${fichaParaSincronizar.id} após ${MAX_ATTEMPTS} tentativas.`);
+                    // Opcional: Notificar o usuário, mover para uma lista de "falhas de sincronização"
+                }
+            }
+            
+            try {
+                localStorage.setItem('fichas_rdo', JSON.stringify(fichas));
+                showMessage('Sincronização concluída. Verifique o console para detalhes.', 'success');
+            } catch (e) {
+                if (e.name === 'QuotaExceededError') {
+                    showMessage('Espaço de armazenamento esgotado. Não foi possível salvar dados.', 'error');
+                } else {
+                    showMessage('Erro ao salvar dados após sincronização.', 'error');
+                }
+                console.error('Erro ao salvar no localStorage após sincronização:', e);
+            }
+            
+            atualizarListaFichas();
+            showLoading(false);
+        }
+
+        // Carrega as fichas do localStorage e exibe
+        function atualizarListaFichas() {
+            let fichas = [];
+            try {
+            } catch (e) {
+                console.error('Erro ao parsear fichas do localStorage:', e);
+                localStorage.removeItem('fichas_rdo'); // Limpa dados corrompidos
+                showMessage('Dados locais corrompidos foram resetados.', 'error');
+            }
+
+            const filterOperario = document.getElementById('filterOperario').value.toLowerCase();
+            const filterObra = document.getElementById('filterObra').value.toLowerCase();
+            const filterData = document.getElementById('filterData').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+
+            const fichasFiltradas = fichas.filter(f => {
+                return matchOperario && matchObra && matchData && matchStatus;
+            });
+
+            fichaList.innerHTML = ''; // Limpa a lista atual
+
+            if (fichasFiltradas.length === 0) {
+                fichaList.innerHTML = '<p>Nenhuma ficha encontrada com os filtros aplicados.</p>';
+                return;
+            }
+
+            fichasFiltradas.sort((a, b) => new Date(b.dataExecucao + 'T' + b.horaInicio) - new Date(a.dataExecucao + 'T' + a.horaInicio));
+
+            fichasFiltradas.forEach(ficha => {
+                const fichaCard = document.createElement('div');
+                fichaCard.className = 'ficha-card';
+                fichaCard.innerHTML = `
+                    <div class="sync-status ${ficha.sincronizado ? 'sincronizado' : 'pendente'}">
+                        ${ficha.sincronizado ? 'Sincronizado' : 'Pendente'}
+                    </div>
+                    <div><strong>Data:</strong> ${escapeHtml(ficha.dataExecucao)}</div>
+                    <div><strong>Operário:</strong> ${escapeHtml(ficha.nomeOperario)}</div>
+                    <div><strong>Obra:</strong> ${escapeHtml(ficha.nomeObra)}</div>
+                    <div><strong>Início:</strong> ${escapeHtml(ficha.horaInicio)}</div>
+                    <div><strong>Duração:</strong> ${escapeHtml(ficha.duracao)} minutos</div>
+                    <div><strong>Término:</strong> ${escapeHtml(ficha.horaFim)}</div>
+                    <div><strong>Atividade:</strong> ${escapeHtml(ficha.descricaoAtividade)}</div>
+                    <div><strong>Status:</strong> ${escapeHtml(ficha.statusAtividade)}</div>
+                    <div><strong>Última Sincronização:</strong> ${ficha.dataSincronizacao ? new Date(ficha.dataSincronizacao).toLocaleString() : 'Nunca'}</div>
+                    <div class="actions">
+                        <button class="danger" onclick="deletarFicha('${ficha.id}')">Excluir</button>
+                    </div>
+                `;
+                fichaList.appendChild(fichaCard);
+            });
+        }
+
+        // Salvar Ficha
+        fichaForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Validação de campos
+            if (!fichaForm.checkValidity()) {
+                showMessage('Por favor, preencha todos os campos obrigatórios corretamente.', 'error');
+                return;
+            }
+
+            const nomeOperario = document.getElementById('nomeOperario').value.trim();
+            const nomeObra = document.getElementById('nomeObra').value.trim();
+            const dataExecucao = document.getElementById('dataExecucao').value;
+            const horaInicioStr = document.getElementById('horaInicio').value.trim();
+            const minInicioStr = document.getElementById('minInicio').value.trim();
+            const duracaoStr = document.getElementById('duracao').value.trim();
+            const descricaoAtividade = document.getElementById('descricaoAtividade').value.trim();
+            const statusAtividade = document.getElementById('statusAtividade').value;
+
+            // Validação numérica e de range
+            const horaInicio = parseInt(horaInicioStr, 10);
+            const minInicio = parseInt(minInicioStr, 10);
+            const duracao = parseInt(duracaoStr, 10);
+
+                showMessage('Hora de Início inválida. Use um valor entre 0 e 23.', 'error');
+                return;
+            }
+                showMessage('Minuto de Início inválido. Use um valor entre 0 e 59.', 'error');
+                return;
+            }
+                showMessage('Duração inválida. Use um valor numérico maior que 0.', 'error');
+                return;
+            }
+
+            // Calcular hora fim
+            const dataHoraInicio = new Date(`${dataExecucao}T${String(horaInicio).padStart(2, '0')}:${String(minInicio).padStart(2, '0')}:00`);
+            if (isNaN(dataHoraInicio.getTime())) {
+                showMessage('Data ou hora de início inválida. Verifique os valores.', 'error');
+                return;
+            }
+            const dataHoraFim = new Date(dataHoraInicio.getTime() + duracao * 60 * 1000);
+            const horaFim = `${String(dataHoraFim.getHours()).padStart(2, '0')}:${String(dataHoraFim.getMinutes()).padStart(2, '0')}`;
+
+            const ficha = {
+                id: generateUniqueId(),
+                nomeOperario: nomeOperario,
+                nomeObra: nomeObra,
+                dataExecucao: dataExecucao,
+                horaInicio: `${String(horaInicio).padStart(2, '0')}:${String(minInicio).padStart(2, '0')}`,
+                minInicio: minInicio, // Guardar minutos para cálculo interno se precisar
+                duracao: duracao,
+                horaFim: horaFim,
+                descricaoAtividade: descricaoAtividade,
+                statusAtividade: statusAtividade,
+                sincronizado: false, // Nova ficha sempre é pendente de sincronização
+                dataSincronizacao: null
+            };
+
+            let fichas = [];
+            try {
+            } catch (e) {
+                console.error('Erro ao parsear fichas do localStorage antes de salvar:', e);
+                localStorage.removeItem('fichas_rdo');
+                fichas = [];
+                showMessage('Dados locais corrompidos foram resetados. Tente novamente.', 'error');
+                return;
+            }
+
+            fichas.push(ficha);
+
+            try {
+                localStorage.setItem('fichas_rdo', JSON.stringify(fichas));
+                showMessage('Ficha salva com sucesso!', 'success');
+                resetForm();
+                atualizarListaFichas();
+                sincronizarDados(); // Tenta sincronizar a nova ficha imediatamente
+            } catch (e) {
+                if (e.name === 'QuotaExceededError') {
+                    showMessage('Espaço de armazenamento esgotado. Não foi possível salvar a ficha.', 'error');
+                } else {
+                    showMessage('Erro ao salvar a ficha.', 'error');
+                }
+                console.error('Erro ao salvar no localStorage:', e);
+            }
+        });
+
+        // Deletar Ficha
+        function deletarFicha(id) {
+            if (confirm('Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.')) {
+                let fichas = [];
+                try {
+                } catch (e) {
+                    console.error('Erro ao parsear fichas do localStorage para deletar:', e);
+                    localStorage.removeItem('fichas_rdo');
+                    showMessage('Dados locais corrompidos foram resetados. A ficha não pôde ser deletada.', 'error');
+                    return;
+                }
+
+                const fichasAtualizadas = fichas.filter(f => f.id !== id);
+                
+                try {
+                    localStorage.setItem('fichas_rdo', JSON.stringify(fichasAtualizadas));
+                    showMessage('Ficha excluída com sucesso!', 'success');
+                    atualizarListaFichas();
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError') {
+                        showMessage('Espaço de armazenamento esgotado. Não foi possível deletar a ficha.', 'error');
+                    } else {
+                        showMessage('Erro ao deletar a ficha.', 'error');
+                    }
+                    console.error('Erro ao salvar no localStorage após exclusão:', e);
+                }
+            }
+        }
+
+        // Exportar para CSV
+        document.getElementById('exportCsv').addEventListener('click', () => {
+            let fichas = [];
+            try {
+            } catch (e) {
+                console.error('Erro ao parsear fichas do localStorage para exportar:', e);
+                showMessage('Erro ao carregar dados para exportação CSV.', 'error');
+                return;
+            }
+
+            if (fichas.length === 0) {
+                showMessage('Não há fichas para exportar.', 'info');
+                return;
+            }
+
+            const headers = [
+                "Data", "Operário", "Obra", "Hora Início", "Duração (min)", "Hora Término",
+                "Atividade", "Status", "Sincronizado", "Data Sincronização"
+            ];
+
+            const rows = fichas.map(f => [
+                f.dataExecucao,
+                f.nomeOperario,
+                f.nomeObra,
+                f.horaInicio,
+                f.duracao,
+                f.horaFim,
+                f.descricaoAtividade,
+                f.statusAtividade,
+                f.sincronizado ? 'Sim' : 'Não',
+                f.dataSincronizacao ? new Date(f.dataSincronizacao).toLocaleString() : 'Nunca'
+            ]);
+
+            let csvContent = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',') + '\n';
+            rows.forEach(row => {
+                csvContent += row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            
+            const today = new Date();
+            const dateString = today.toISOString().split('T')[0];
+            link.setAttribute('download', `fichas-rdo-${dateString}.csv`);
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showMessage('Fichas exportadas com sucesso para CSV!', 'success');
+        });
+
+        // Event Listeners para Filtros
+        document.getElementById('aplicarFiltros').addEventListener('click', atualizarListaFichas);
+        document.getElementById('limparFiltros').addEventListener('click', () => {
+            document.getElementById('filterOperario').value = '';
+            document.getElementById('filterObra').value = '';
+            document.getElementById('filterData').value = '';
+            document.getElementById('filterStatus').value = '';
+            atualizarListaFichas();
+        });
+
+        // Sincronização manual
+        document.getElementById('syncNow').addEventListener('click', sincronizarDados);
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            resetForm(); // Define a data atual
+            atualizarListaFichas();
+            updateNetworkStatus(); // Verifica status online/offline inicial
+            sincronizarDados(); // Tenta sincronizar ao carregar a página
+        });
+
+        // Eventos de status de rede
+        window.addEventListener('online', () => {
+            updateNetworkStatus();
+            sincronizarDados(); // Tenta sincronizar ao voltar online
+            showMessage('Conectado à internet. Sincronizando dados pendentes...', 'info');
+        });
+        window.addEventListener('offline', () => {
+            updateNetworkStatus();
+            showMessage('Você está offline. Os dados serão salvos localmente.', 'warning');
+        });
+    </script>
+</body>
+</html>
